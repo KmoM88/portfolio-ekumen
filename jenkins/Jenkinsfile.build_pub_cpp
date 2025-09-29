@@ -2,7 +2,8 @@ pipeline {
     agent any
     environment {
         IMAGE_NAME = "localhost:5000/counter_publisher_cpp"
-        BASE_IMAGE = "counter_base:latest"
+        REGISTRY_USER = "testuser"
+        REGISTRY_PASS = "testpassword"
     }
     stages {
         stage('Checkout') {
@@ -13,8 +14,8 @@ pipeline {
         stage('Get Git SHA') {
             steps {
                 script {
-                    def SHORT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    env.IMAGE_TAG = "${SHORT_SHA}"
+                    SHORT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    IMAGE_TAG = "${SHORT_SHA}"
                     echo "Git SHA: ${SHORT_SHA}"
                 }
             }
@@ -35,23 +36,26 @@ pipeline {
         }
         stage('Build Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -f counter_publisher_cpp/Dockerfile.pub_cpp ."
-                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+                sh """
+                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} \
+                                 -t ${IMAGE_NAME}:latest \
+                                 -f counter_publisher_cpp/Dockerfile .
+                """
             }
         }
         stage('Login to Registry') {
             steps {
                 script {
-                    sh "echo testpassword | docker login localhost:5000 -u testuser --password-stdin"
+                    sh "echo ${REGISTRY_PASS} | docker login localhost:5000 -u ${REGISTRY_USER} --password-stdin"
                 }
             }
         }
         stage('Push Image') {
             steps {
-                script {
-                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                    sh "docker push ${IMAGE_NAME}:latest"
-                }
+                sh """
+                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker push ${IMAGE_NAME}:latest
+                """
             }
         }
     }
