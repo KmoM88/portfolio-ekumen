@@ -6,7 +6,6 @@
 class CounterSubscriber : public rclcpp::Node {
 public:
   CounterSubscriber() : Node("counter_subscriber_cpp") {
-    // Increase delay to ensure ROS 2 discovery completes
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
     // Use default QoS (reliable, volatile, queue size 10)
@@ -16,7 +15,6 @@ public:
           RCLCPP_INFO(this->get_logger(), "Recibido: %s", msg->data.c_str());
         });
 
-    // Debug: Log topic info
     auto topic_info = get_publishers_info_by_topic("/counter");
     RCLCPP_INFO(this->get_logger(), "Subscriber iniciado, escuchando /counter. Found %zu publishers.", topic_info.size());
   }

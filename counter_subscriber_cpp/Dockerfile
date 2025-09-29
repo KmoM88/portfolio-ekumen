@@ -31,11 +31,6 @@ RUN rosdep init && rosdep update
 WORKDIR /ws
 COPY counter_subscriber_cpp /ws/src/counter_subscriber_cpp
 
-# Debug: Verificar los archivos copiados
-RUN ls -la /ws/src/counter_subscriber_cpp && \
-    test -f /ws/src/counter_subscriber_cpp/CMakeLists.txt || (echo "ERROR: CMakeLists.txt not found!" && exit 1) && \
-    test -f /ws/src/counter_subscriber_cpp/src/counter_subscriber.cpp || (echo "ERROR: counter_subscriber.cpp not found!" && exit 1)
-
 # Construir el workspace con colcon
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     cd /ws && \

@@ -8,18 +8,13 @@ class CounterSubscriber(Node):
     def __init__(self):
         super().__init__('counter_subscriber_py')
 
-        # Sleep de 3s para que discovery tenga tiempo
         time.sleep(3)
-
-        # Crear la suscripción
         self.sub = self.create_subscription(
             String,
             '/counter',
             self.callback,
             10
         )
-
-        # Obtener info de publishers
         publishers = self.get_publishers_info_by_topic('/counter')
         self.get_logger().info(f"Subscriber Python iniciado en /counter. Found {len(publishers)} publishers.")
 
