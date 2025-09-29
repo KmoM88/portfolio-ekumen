@@ -31,9 +31,16 @@ RUN rosdep init && rosdep update
 WORKDIR /ws
 COPY counter_subscriber_py /ws/src/counter_subscriber_py
 
+# Construir el workspace con colcon
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
-    rosdep install --from-paths src --ignore-src -r -y || true"
+    cd /ws && \
+    rosdep install --from-paths src --ignore-src -r -y && \
+    colcon build --symlink-install --packages-select counter_subscriber_py"
 
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && colcon build --symlink-install"
-
-ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash && source /ws/install/setup.bash && ros2 run counter_subscriber_py counter_subscriber"]
+ENTRYPOINT ["/bin/bash", "-c", "\
+  source /opt/ros/jazzy/setup.bash && \
+  source /ws/install/setup.bash && \
+  ros2 run counter_subscriber_py counter_subscriber \
+  $( [ -n \"$NAMESPACE\" ] && echo \"--ros-args -r __ns:=$NAMESPACE\" ) \
+  $( [ -n \"$NODE_NAME\" ] && echo \"-r __node:=$NODE_NAME\" ) \
+"]

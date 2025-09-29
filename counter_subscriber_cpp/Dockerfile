@@ -38,4 +38,10 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     colcon build --symlink-install --packages-select counter_subscriber_cpp"
 
 # Configurar el entorno para ejecución
-ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash && source /ws/install/setup.bash && ros2 run counter_subscriber_cpp counter_subscriber"]
+ENTRYPOINT ["/bin/bash", "-c", "\
+  source /opt/ros/jazzy/setup.bash && \
+  source /ws/install/setup.bash && \
+  ros2 run counter_subscriber_cpp counter_subscriber \
+  $( [ -n \"$NAMESPACE\" ] && echo \"--ros-args -r __ns:=$NAMESPACE\" ) \
+  $( [ -n \"$NODE_NAME\" ] && echo \"-r __node:=$NODE_NAME\" ) \
+"]

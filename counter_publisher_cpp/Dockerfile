@@ -1,6 +1,5 @@
 FROM ubuntu:24.04
 
-# Instalar herramientas básicas
 RUN apt-get update && \
     apt-get install -y \
         curl \
@@ -38,4 +37,10 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     colcon build --symlink-install"
 
 # Configurar el entorno para ejecución
-ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash && source /ws/install/setup.bash && ros2 run counter_publisher_cpp counter_publisher"]
+ENTRYPOINT ["/bin/bash", "-c", "\
+  source /opt/ros/jazzy/setup.bash && \
+  source /ws/install/setup.bash && \
+  ros2 run counter_publisher_cpp counter_publisher \
+  $( [ -n \"$NAMESPACE\" ] && echo \"--ros-args -r __ns:=$NAMESPACE\" ) \
+  $( [ -n \"$NODE_NAME\" ] && echo \"-r __node:=$NODE_NAME\" ) \
+"]
