@@ -40,7 +40,7 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
 ENTRYPOINT ["/bin/bash", "-c", "\
   source /opt/ros/jazzy/setup.bash && \
   source /ws/install/setup.bash && \
-  ros2 run counter_publisher_cpp counter_publisher \
-  $( [ -n \"$NAMESPACE\" ] && echo \"--ros-args -r __ns:=$NAMESPACE\" ) \
-  $( [ -n \"$NODE_NAME\" ] && echo \"-r __node:=$NODE_NAME\" ) \
+  ros2 run counter_publisher_cpp counter_publisher --ros-args \
+    -r __ns:=${NAMESPACE:-/} \
+    -r __node:=${NODE_NAME:-publisher_cpp} \
 "]
