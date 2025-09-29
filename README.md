@@ -47,15 +47,15 @@ ros2_devops_demo/
 
 ---
 
-## 2. Jenkins
+## Jenkins
 
-### a. Local Testing (Jenkins + Local Registry)
+### Local Testing (Jenkins + Local Registry)
 - A `docker-compose.yml` is included to spin up:
   - A local Jenkins instance
   - A private Docker Registry
 - Allows testing pipelines end-to-end before using DigitalOcean.
 - Access:
-  - Jenkins: http://localhost:8081 (default: `admin/admin`)
+  - Jenkins: http://localhost:8081
   - Registry: http://localhost:5000
 - Commands:
 
@@ -102,6 +102,14 @@ In deploy path run:
 docker compose build
 docker compose up
 ```
+
+## Pipelines
+
+In a local instance of Jenkins and registry, you can test the pipelines:
+- `jenkinsfile.build_pub_cpp`: builds and pushes the C++ publisher image to the local registry.
+- `jenkinsfile.build_pub_py`: builds and pushes the Python publisher image to the local registry.
+- `jenkinsfile.build_sub_cpp`: builds and pushes the C++ publisher and subscriber images to the local registry.
+- `jenkinsfile.build_sub_py`: builds and pushes the Python publisher and subscriber images to the local registry.
 
 ---
 
