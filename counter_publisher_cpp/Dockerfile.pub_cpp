@@ -1,33 +1,13 @@
 # Dockerfile.pub_cpp
 FROM counter_base:latest
 
-ENV ROS_DISTRO=jazzy
-
-WORKDIR /ws
-SHELL ["/bin/bash", "-c"]
-
-# Copiar el paquete al workspace
+# Copiar el paquete a /ws/src
 COPY counter_publisher_cpp /ws/src/counter_publisher_cpp
 
-# Instalar dependencias necesarias para compilar el paquete
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-${ROS_DISTRO}-ament-cmake \
-    ros-${ROS_DISTRO}-rclcpp \
-    ros-${ROS_DISTRO}-std-msgs \
-    && rm -rf /var/lib/apt/lists/*
-
-# Resolver dependencias del paquete e instalar con rosdep
-RUN rosdep update && \
-    rosdep install --from-paths src --ignore-src -r -y
-
-# Construir el paquete
-RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
+# Construir el paquete con colcon
+RUN cd /ws && \
+    rosdep install --from-paths src --ignore-src -r -y && \
     colcon build --symlink-install --packages-select counter_publisher_cpp
 
-# Entrypoint para correr el nodo
-ENTRYPOINT ["/bin/bash", "-c", "\
-  source /opt/ros/${ROS_DISTRO}/setup.bash && \
-  source /ws/install/setup.bash && \
-  ros2 run counter_publisher_cpp counter_publisher \
-  $( [ -n \"$NAMESPACE\" ] && echo \"--ros-args -r __ns:=$NAMESPACE\" ) \
-  $( [ -n \"$NODE_NAME\" ] && echo \"-r __node:=$NODE_NAME\" )"]
+# Configurar entorno ROS
+SHELL ["/bin/bash", "-c"]
