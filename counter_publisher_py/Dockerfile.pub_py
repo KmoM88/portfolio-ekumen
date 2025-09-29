@@ -1,0 +1,29 @@
+FROM builder AS pub_py_builder
+
+COPY counter_publisher_py /ws/src/counter_publisher_py
+
+RUN source /opt/ros/jazzy/setup.bash && \
+    rosdep install --from-paths src --ignore-src -r -y --rosdistro jazzy && \
+    colcon build --symlink-install --packages-select counter_publisher_py
+
+# Runtime
+FROM ubuntu:24.04
+ENV ROS_DISTRO=jazzy
+
+RUN apt-get update && apt-get install -y \
+    ros-${ROS_DISTRO}-ros-base \
+    ros-${ROS_DISTRO}-rclpy \
+    ros-${ROS_DISTRO}-std-msgs \
+    ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /ws
+COPY --from=pub_py_builder /ws/install /ws/install
+
+ENTRYPOINT ["/bin/bash", "-c", "\
+  source /opt/ros/$ROS_DISTRO/setup.bash && \
+  source /ws/install/setup.bash && \
+  ros2 run counter_publisher_py counter_publisher \
+  $( [ -n \"$NAMESPACE\" ] && echo \"--ros-args -r __ns:=$NAMESPACE\" ) \
+  $( [ -n \"$NODE_NAME\" ] && echo \"-r __node:=$NODE_NAME\" )"]
