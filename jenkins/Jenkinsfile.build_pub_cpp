@@ -13,8 +13,8 @@ pipeline {
         stage('Get Git SHA') {
             steps {
                 script {
-                    SHORT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    IMAGE_TAG = "${SHORT_SHA}"
+                    def SHORT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = "${SHORT_SHA}"
                     echo "Git SHA: ${SHORT_SHA}"
                 }
             }
@@ -34,10 +34,11 @@ pipeline {
             }
         }
         stage('Build Image') {
-			steps {
-				sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -f counter_publisher_cpp/Dockerfile.pub_cpp ."
-			}
-		}
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -f counter_publisher_cpp/Dockerfile.pub_cpp ."
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+            }
+        }
         stage('Login to Registry') {
             steps {
                 script {
@@ -49,6 +50,7 @@ pipeline {
             steps {
                 script {
                     sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker push ${IMAGE_NAME}:latest"
                 }
             }
         }
@@ -56,7 +58,7 @@ pipeline {
     post {
         always {
             echo "Cleanup local images..."
-            sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+            sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest || true"
         }
     }
 }
