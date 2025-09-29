@@ -4,7 +4,11 @@ FROM counter_base:latest
 # Variables
 ARG ROS_DISTRO=jazzy
 ENV ROS_DISTRO=${ROS_DISTRO}
-
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-${ROS_DISTRO}-ament-cmake \
+    ros-${ROS_DISTRO}-rclcpp \
+    ros-${ROS_DISTRO}-std-msgs \
+    && rm -rf /var/lib/apt/lists/*
 # Copiar el paquete al workspace
 COPY counter_publisher_cpp /ws/src/counter_publisher_cpp
 
