@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: publisher-cpp
+  name: subscriber-cpp
   namespace: ros2-demo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: publisher-cpp
+      app: subscriber-cpp
   template:
     metadata:
       labels:
-        app: publisher-cpp
+        app: subscriber-cpp
     spec:
       containers:
-        - name: publisher-cpp
-          image: 192.168.100.27:5000/counter_publisher_cpp:latest
+        - name: subscriber-cpp
+          image: 192.168.100.27:5000/counter_subscriber_cpp:latest
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_NAME
-              value: "publisher_cpp"
+              value: "subscriber_cpp"
             - name: NAMESPACE
               value: "/ros2_demo"

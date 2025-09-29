@@ -40,7 +40,7 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
 ENTRYPOINT ["/bin/bash", "-c", "\
   source /opt/ros/jazzy/setup.bash && \
   source /ws/install/setup.bash && \
-  ros2 run counter_subscriiber_py counter_subscriber --ros-args \
+  ros2 run counter_subscriber_py counter_subscriber --ros-args \
     -r __ns:=${NAMESPACE:-/} \
     -r __node:=${NODE_NAME:-subscriber_py} \
 "]
