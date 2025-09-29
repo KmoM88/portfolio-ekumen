@@ -1,0 +1,69 @@
+networks:
+  ros2_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+
+services:
+  counter_publisher_cpp:
+    build:
+      context: ..
+      dockerfile: counter_publisher_cpp/Dockerfile
+    image: counter_publisher_cpp_image
+    container_name: ros2_publisher_cpp
+    networks:
+      ros2_net:
+        ipv4_address: 172.30.0.2
+    environment:
+      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    command: ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash && source /ws/install/setup.bash && ros2 run counter_publisher_cpp counter_publisher"]
+
+  counter_publisher_py:
+    build:
+      context: ..
+      dockerfile: counter_publisher_py/Dockerfile
+    image: counter_publisher_py_image
+    container_name: ros2_publisher_py
+    networks:
+      ros2_net:
+        ipv4_address: 172.30.0.3
+    environment:
+      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    command: ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash && source /ws/install/setup.bash && ros2 run counter_publisher_py counter_publisher"]
+
+  counter_subscriber_cpp:
+    build:
+      context: ..
+      dockerfile: counter_subscriber_cpp/Dockerfile
+    image: counter_subscriber_cpp_image
+    container_name: ros2_subscriber_cpp
+    networks:
+      ros2_net:
+        ipv4_address: 172.30.0.4
+    environment:
+      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    depends_on:
+      - counter_publisher_cpp
+      - counter_publisher_py
+    command: ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash && source /ws/install/setup.bash && ros2 run counter_subscriber_cpp counter_subscriber"]
+
+  counter_subscriber_py:
+    build:
+      context: ..
+      dockerfile: counter_subscriber_py/Dockerfile
+    image: counter_subscriber_py_image
+    container_name: ros2_subscriber_py
+    networks:
+      ros2_net:
+        ipv4_address: 172.30.0.5
+    environment:
+      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    depends_on:
+      - counter_publisher_cpp
+      - counter_publisher_py
+    command: ["/bin/bash", "-c", "source /opt/ros/jazzy/setup.bash && source /ws/install/setup.bash && ros2 run counter_subscriber_py counter_subscriber"]
