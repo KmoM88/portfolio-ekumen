@@ -18,7 +18,6 @@ pipeline {
         stage('Determine SHA') {
             steps {
                 script {
-                    // SHA corto de commit actual
                     SHORT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                     IMAGE_TAG = SHORT_SHA
                     echo "Current commit short SHA: ${SHORT_SHA}"
@@ -29,19 +28,13 @@ pipeline {
         stage('Check Registry') {
             steps {
                 script {
-                    // Intenta inspeccionar la imagen en el registry
                     def result = sh(
                         script: "docker pull ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} >/dev/null 2>&1 || echo 'notfound'",
                         returnStdout: true
                     ).trim()
                     
-                    if (result == "notfound") {
-                        env.BUILD_IMAGE = "true"
-                        echo "Image not found in registry, will build."
-                    } else {
-                        env.BUILD_IMAGE = "false"
-                        echo "Image already exists in registry, skipping build."
-                    }
+                    env.BUILD_IMAGE = (result == "notfound") ? "true" : "false"
+                    echo "BUILD_IMAGE=${env.BUILD_IMAGE}"
                 }
             }
         }
@@ -51,9 +44,7 @@ pipeline {
                 expression { env.BUILD_IMAGE == "true" }
             }
             steps {
-                script {
-                    docker.build("${IMAGE_NAME}:${IMAGE_TAG}", "-f Dockerfile.base .")
-                }
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -f Dockerfile.base ."
             }
         }
 
@@ -62,9 +53,7 @@ pipeline {
                 expression { env.BUILD_IMAGE == "true" }
             }
             steps {
-                script {
-                    sh "echo ${REGISTRY_PASSWORD} | docker login ${REGISTRY} -u ${REGISTRY_USER} --password-stdin"
-                }
+                sh "echo ${REGISTRY_PASSWORD} | docker login ${REGISTRY} -u ${REGISTRY_USER} --password-stdin"
             }
         }
 
@@ -73,10 +62,8 @@ pipeline {
                 expression { env.BUILD_IMAGE == "true" }
             }
             steps {
-                script {
-                    sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
-                    sh "docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
-                }
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                sh "docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
     }
