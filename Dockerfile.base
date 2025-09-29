@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \
     lsb-release \
+    python3-venv \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
@@ -25,10 +26,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar colcon y rosdep desde pip
-RUN python3 -m pip install -U \
-    colcon-common-extensions \
-    rosdep
+# Crear entorno virtual para pip y evitar PEP 668
+RUN python3 -m venv /opt/ros_venv && \
+    /opt/ros_venv/bin/pip install --upgrade pip && \
+    /opt/ros_venv/bin/pip install colcon-common-extensions rosdep
+
+# Configurar PATH para entorno virtual
+ENV PATH="/opt/ros_venv/bin:$PATH"
 
 # Inicializar rosdep
 RUN rosdep init && rosdep update
