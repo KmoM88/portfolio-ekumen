@@ -1,26 +1,30 @@
-# Usa la imagen base optimizada
+# Dockerfile.pub_cpp
 FROM counter_base:latest
 
-# Variables
-ARG ROS_DISTRO=jazzy
-ENV ROS_DISTRO=${ROS_DISTRO}
+ENV ROS_DISTRO=jazzy
+
+WORKDIR /ws
+SHELL ["/bin/bash", "-c"]
+
+# Copiar el paquete al workspace
+COPY counter_publisher_cpp /ws/src/counter_publisher_cpp
+
+# Instalar dependencias necesarias para compilar el paquete
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-${ROS_DISTRO}-ament-cmake \
     ros-${ROS_DISTRO}-rclcpp \
     ros-${ROS_DISTRO}-std-msgs \
     && rm -rf /var/lib/apt/lists/*
-# Copiar el paquete al workspace
-COPY counter_publisher_cpp /ws/src/counter_publisher_cpp
 
-# Instalar dependencias del paquete usando rosdep y construir con colcon
-RUN cd /ws && \
-    rosdep install --from-paths src --ignore-src -r -y && \
+# Resolver dependencias del paquete e instalar con rosdep
+RUN rosdep update && \
+    rosdep install --from-paths src --ignore-src -r -y
+
+# Construir el paquete
+RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
     colcon build --symlink-install --packages-select counter_publisher_cpp
 
-# Fuente de ROS y workspace para todos los comandos
-SHELL ["/bin/bash", "-c"]
-
-# Entrypoint
+# Entrypoint para correr el nodo
 ENTRYPOINT ["/bin/bash", "-c", "\
   source /opt/ros/${ROS_DISTRO}/setup.bash && \
   source /ws/install/setup.bash && \
