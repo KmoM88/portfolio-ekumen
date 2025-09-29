@@ -1,0 +1,25 @@
+# Usa la imagen base optimizada
+FROM counter_base:latest
+
+# Variables
+ARG ROS_DISTRO=jazzy
+ENV ROS_DISTRO=${ROS_DISTRO}
+
+# Copiar el paquete al workspace
+COPY counter_publisher_cpp /ws/src/counter_publisher_cpp
+
+# Instalar dependencias del paquete usando rosdep y construir con colcon
+RUN cd /ws && \
+    rosdep install --from-paths src --ignore-src -r -y && \
+    colcon build --symlink-install --packages-select counter_publisher_cpp
+
+# Fuente de ROS y workspace para todos los comandos
+SHELL ["/bin/bash", "-c"]
+
+# Entrypoint
+ENTRYPOINT ["/bin/bash", "-c", "\
+  source /opt/ros/${ROS_DISTRO}/setup.bash && \
+  source /ws/install/setup.bash && \
+  ros2 run counter_publisher_cpp counter_publisher \
+  $( [ -n \"$NAMESPACE\" ] && echo \"--ros-args -r __ns:=$NAMESPACE\" ) \
+  $( [ -n \"$NODE_NAME\" ] && echo \"-r __node:=$NODE_NAME\" )"]
