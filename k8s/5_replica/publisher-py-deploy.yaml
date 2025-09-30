@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: publisher-py
+  namespace: ros2-demo
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: publisher-py
+  template:
+    metadata:
+      labels:
+        app: publisher-py
+    spec:
+      containers:
+        - name: publisher-py
+          image: 192.168.100.27:5000/counter_publisher_py:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              value: "/ros2_demo"
