@@ -127,3 +127,8 @@ In a local instance of Jenkins and registry, you can test the pipelines:
 
 ---
 
+## Kubernetes Deployment
+- The `k8s` directory contains deployment manifests for running the publisher and subscriber nodes in a Kubernetes cluster.
+- Two sets of manifests are provided:
+  - `1_replica`: Deployments with a single replica for each node.
+  - `5_replica`: Deployments with five replicas for each node (TODO: fix names conflict).
