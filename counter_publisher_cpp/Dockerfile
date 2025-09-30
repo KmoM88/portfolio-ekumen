@@ -37,6 +37,10 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     colcon build --symlink-install"
 
 # Configurar el entorno para ejecución
-COPY ros_entrypoint.sh /ros_entrypoint.sh
-RUN chmod +x /ros_entrypoint.sh
-ENTRYPOINT ["/ros_entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "-c", "\
+  source /opt/ros/jazzy/setup.bash && \
+  source /ws/install/setup.bash && \
+  ros2 run counter_publisher_cpp counter_publisher --ros-args \
+    -r __ns:=${NAMESPACE:-/} \
+    -r __node:=${NODE_NAME:-publisher_cpp} \
+"]
