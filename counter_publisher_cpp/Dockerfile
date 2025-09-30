@@ -37,10 +37,10 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     colcon build --symlink-install"
 
 # Configurar el entorno para ejecución
-ENTRYPOINT ["/bin/bash", "-c", "\
+ENTRYPOINT ["/bin/bash", "-c", " \
   source /opt/ros/jazzy/setup.bash && \
   source /ws/install/setup.bash && \
-  ros2 run counter_publisher_cpp counter_publisher --ros-args \
-    -r __ns:=${NAMESPACE:-/} \
-    -r __node:=${NODE_NAME:-publisher_cpp} \
+  NODE_NAME_CLEAN=$(echo $NODE_NAME | tr '-' '_') && \
+  exec ros2 run counter_publisher_cpp counter_publisher \
+    --ros-args -r __ns:=/$NAMESPACE -r __node:=$NODE_NAME_CLEAN \
 "]
