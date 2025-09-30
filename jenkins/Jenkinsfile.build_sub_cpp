@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+    environment {
+        IMAGE_NAME = "localhost:5000/counter_subscriber_cpp"
+        REGISTRY_USER = "testuser"
+        REGISTRY_PASS = "testpassword"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Get Git SHA') {
+            steps {
+                script {
+                    SHORT_SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    IMAGE_TAG = "${SHORT_SHA}"
+                    echo "Git SHA: ${SHORT_SHA}"
+                }
+            }
+        }
+        stage('Check if image exists') {
+            steps {
+                script {
+                    def exists = sh(script: "docker pull ${IMAGE_NAME}:${IMAGE_TAG} || echo notfound", returnStdout: true).trim()
+                    if (exists != "notfound") {
+                        echo "Image already exists, skipping build."
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    } else {
+                        echo "Image not found in registry, will build."
+                    }
+                }
+            }
+        }
+        stage('Build Image') {
+            steps {
+                sh """
+                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} \
+                                 -t ${IMAGE_NAME}:latest \
+                                 -f counter_subscriber_cpp/Dockerfile .
+                """
+            }
+        }
+        stage('Login to Registry') {
+            steps {
+                script {
+                    sh "echo ${REGISTRY_PASS} | docker login localhost:5000 -u ${REGISTRY_USER} --password-stdin"
+                }
+            }
+        }
+        stage('Push Image') {
+            steps {
+                sh """
+                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker push ${IMAGE_NAME}:latest
+                """
+            }
+        }
+    }
+    post {
+        always {
+            echo "Cleanup local images..."
+            sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest || true"
+        }
+    }
+}

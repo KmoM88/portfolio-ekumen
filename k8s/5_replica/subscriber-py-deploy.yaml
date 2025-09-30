@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subscriber-py
+  namespace: ros2-demo
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: subscriber-py
+  template:
+    metadata:
+      labels:
+        app: subscriber-py
+    spec:
+      containers:
+        - name: subscriber-py
+          image: 192.168.100.27:5000/counter_subscriber_py:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              value: "/ros2_demo"
